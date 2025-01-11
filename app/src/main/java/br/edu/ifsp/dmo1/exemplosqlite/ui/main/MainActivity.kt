@@ -1,7 +1,11 @@
 package br.edu.ifsp.dmo1.exemplosqlite.ui.main
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.ActivityResultCallback
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -11,12 +15,14 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView.LayoutManager
 import br.edu.ifsp.dmo1.exemplosqlite.R
 import br.edu.ifsp.dmo1.exemplosqlite.databinding.ActivityMainBinding
+import br.edu.ifsp.dmo1.exemplosqlite.ui.details.DetailsActivity
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
     private lateinit var viewModel: MainViewModel
     private lateinit var adapter: MeuDadoAdapter
+    private lateinit var resultLauncher: ActivityResultLauncher<Intent>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -28,11 +34,26 @@ class MainActivity : AppCompatActivity() {
         setupRecyclerView()
         setupObservers()
         setupListeners()
+        setupLauncher()
+        viewModel.load()
+    }
+
+    private fun setupLauncher() {
+        resultLauncher = registerForActivityResult(
+            ActivityResultContracts.StartActivityForResult(),
+            ActivityResultCallback {
+                if (it.resultCode == RESULT_OK) {
+                    val texto = it.data?.getStringExtra("texto") ?: ""
+                    viewModel.addDado(texto)
+                }
+            }
+        )
     }
 
     private fun setupListeners() {
         binding.buttonAdd.setOnClickListener {
-            viewModel.addDado("Novo texto")
+            val mIntent = Intent(this, DetailsActivity::class.java)
+            resultLauncher.launch(mIntent)
         }
     }
 
