@@ -88,4 +88,15 @@ class MeuDadoDao(private val dbHelper: DatabaseHelper) {
             whereArgs
         )
     }
+
+    fun delete(meuDado: MeuDado) {
+        val where = "${DatabaseHelper.DATABASE_KEYS.COLUMN_ID} = ?"
+        val whereArgs = arrayOf(meuDado.id.toString())
+        val db = dbHelper.writableDatabase
+        db.delete(
+            DatabaseHelper.DATABASE_KEYS.TABLE_NAME,
+            where,
+            whereArgs
+        )
+    }
 }

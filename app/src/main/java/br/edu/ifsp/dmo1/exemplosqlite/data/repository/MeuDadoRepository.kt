@@ -17,4 +17,6 @@ class MeuDadoRepository(context: Context) {
     fun addMeuDado(dado: MeuDado) = dao.insert(dado)
 
     fun updateMeuDado(dado: MeuDado) = dao.update(dado)
+
+    fun deleteMeuDado(dado: MeuDado) = dao.delete(dado)
 }
