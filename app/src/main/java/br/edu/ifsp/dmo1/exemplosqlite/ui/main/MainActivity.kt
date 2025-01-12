@@ -2,27 +2,23 @@ package br.edu.ifsp.dmo1.exemplosqlite.ui.main
 
 import android.content.Intent
 import android.os.Bundle
-import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResultCallback
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView.LayoutManager
-import br.edu.ifsp.dmo1.exemplosqlite.R
 import br.edu.ifsp.dmo1.exemplosqlite.databinding.ActivityMainBinding
 import br.edu.ifsp.dmo1.exemplosqlite.ui.details.DetailsActivity
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), ItemListDadoClickListener {
 
     private lateinit var binding: ActivityMainBinding
     private lateinit var viewModel: MainViewModel
     private lateinit var adapter: MeuDadoAdapter
-    private lateinit var resultLauncher: ActivityResultLauncher<Intent>
+    private lateinit var addResultLauncher: ActivityResultLauncher<Intent>
+    private lateinit var updateResultLauncher: ActivityResultLauncher<Intent>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,8 +34,15 @@ class MainActivity : AppCompatActivity() {
         viewModel.load()
     }
 
+    override fun clickEditItemList(id: Int, texto: String) {
+        val mIntent = Intent(this, DetailsActivity::class.java)
+        mIntent.putExtra("id", id)
+        mIntent.putExtra("texto", texto)
+        updateResultLauncher.launch(mIntent)
+    }
+
     private fun setupLauncher() {
-        resultLauncher = registerForActivityResult(
+        addResultLauncher = registerForActivityResult(
             ActivityResultContracts.StartActivityForResult(),
             ActivityResultCallback {
                 if (it.resultCode == RESULT_OK) {
@@ -48,12 +51,23 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         )
+
+        updateResultLauncher = registerForActivityResult(
+            ActivityResultContracts.StartActivityForResult(),
+            ActivityResultCallback {
+                if (it.resultCode == RESULT_OK) {
+                    val texto = it.data?.getStringExtra("texto") ?: ""
+                    val id = it.data?.getIntExtra("id", -1) ?: -1
+                    viewModel.updateDado(id, texto)
+                }
+            }
+        )
     }
 
     private fun setupListeners() {
         binding.buttonAdd.setOnClickListener {
             val mIntent = Intent(this, DetailsActivity::class.java)
-            resultLauncher.launch(mIntent)
+            addResultLauncher.launch(mIntent)
         }
     }
 
@@ -64,7 +78,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupRecyclerView() {
-        adapter = MeuDadoAdapter(mutableListOf())
+        adapter = MeuDadoAdapter(mutableListOf(), this)
         binding.listDados.adapter = adapter
         binding.listDados.layoutManager = LinearLayoutManager(this)
     }
